@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin · Museum di Sumatera · Nykhen</title>
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+</head>
+<body class="bg-light">
+
+  <nav class="navbar navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand fw-bold text-primary" href="#">Admin Museum di Sumatera · Nykhen</a>
+      <a href="index.html" class="btn btn-outline-primary btn-sm">Lihat Website</a>
+    </div>
+  </nav>
+
+  <main class="py-4">
+    <div class="container" style="max-width: 760px;">
+
+      <!-- LOGIN -->
+      <section id="loginSection" class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h4 class="mb-2">Login Admin</h4>
+          <p class="text-muted small">Masukkan password admin untuk mengelola konten.</p>
+
+          <form id="loginForm" class="small">
+            <div class="mb-3">
+              <label for="adminPassword" class="form-label">Password</label>
+              <input type="password" id="adminPassword" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Masuk</button>
+
+            <p id="loginError" class="text-danger small mt-2 d-none">Password salah!</p>
+            <p class="text-muted small mt-2">
+              Password demo: <b>museum123</b> (bisa kamu ganti di kode di bawah).
+            </p>
+          </form>
+        </div>
+      </section>
+
+      <!-- DASHBOARD -->
+      <section id="dashboardSection" class="d-none">
+
+        <!-- HERO -->
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-body">
+            <h5>Pengaturan Hero</h5>
+            <p class="text-muted small">
+              Ubah judul dan paragraf pembuka di halaman utama. Perubahan akan terbaca oleh
+              <code>index.html</code> dari <em>localStorage</em>.
+            </p>
+            <form id="heroForm" class="small mt-3">
+              <div class="mb-3">
+                <label class="form-label">Judul Hero</label>
+                <input type="text" id="heroTitleInput" class="form-control" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Paragraf Pembuka</label>
+                <textarea id="heroLeadInput" rows="4" class="form-control"></textarea>
+              </div>
+
+              <button class="btn btn-primary btn-sm">Simpan</button>
+              <button type="button" id="resetHero" class="btn btn-secondary btn-sm ms-2">Reset ke Default</button>
+
+              <p id="heroSaveInfo" class="text-success small mt-2 d-none">Perubahan disimpan / direset.</p>
+            </form>
+          </div>
+        </div>
+
+        <!-- GALERI -->
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-body">
+            <h5>Pengaturan Galeri Dokumentasi</h5>
+            <p class="text-muted small">
+              Tambahkan item galeri baru. Gambar bisa dari folder project (misal
+              <code>img/museum5.jpg</code>) atau dari URL gambar.
+            </p>
+
+            <form id="galleryForm" class="small mt-3">
+              <div class="mb-2">
+                <label class="form-label">Nama File / URL Gambar</label>
+                <input id="galleryImage" class="form-control" placeholder="img/museum5.jpg" required />
+              </div>
+
+              <div class="mb-2">
+                <label class="form-label">Keterangan</label>
+                <input id="galleryCaption" class="form-control" placeholder="Keterangan singkat" required />
+              </div>
+
+              <button class="btn btn-primary btn-sm">Tambah</button>
+              <p id="gallerySaveInfo" class="text-success small mt-2 d-none">Item galeri tersimpan.</p>
+            </form>
+
+            <h6 class="mt-4">Item Galeri Tambahan</h6>
+            <ul id="galleryList" class="list-group small"></ul>
+          </div>
+        </div>
+
+      </section>
+
+      <footer class="pt-4 pb-5 text-center text-muted small">
+        &copy; <span id="year"></span> Admin · Museum di Sumatera · Nykhen
+      </footer>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- SCRIPT ADMIN -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const PASSWORD = "museum123"; // GANTI DI SINI KALAU MAU
+
+      const yearSpan = document.getElementById("year");
+      if (yearSpan) yearSpan.textContent = new Date().getFullYear();
+
+      const loginSection = document.getElementById("loginSection");
+      const dashboardSection = document.getElementById("dashboardSection");
+      const loginForm = document.getElementById("loginForm");
+      const loginError = document.getElementById("loginError");
+
+      const heroForm = document.getElementById("heroForm");
+      const heroTitleInput = document.getElementById("heroTitleInput");
+      const heroLeadInput = document.getElementById("heroLeadInput");
+      const heroSaveInfo = document.getElementById("heroSaveInfo");
+      const resetHeroBtn = document.getElementById("resetHero");
+
+      const galleryForm = document.getElementById("galleryForm");
+      const galleryImage = document.getElementById("galleryImage");
+      const galleryCaption = document.getElementById("galleryCaption");
+      const gallerySaveInfo = document.getElementById("gallerySaveInfo");
+      const galleryList = document.getElementById("galleryList");
+
+      // LOGIN
+      loginForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const pass = document.getElementById("adminPassword").value.trim();
+
+        if (pass === PASSWORD) {
+          loginError.classList.add("d-none");
+          loginSection.classList.add("d-none");
+          dashboardSection.classList.remove("d-none");
+          loadHero();
+          renderGalleryList();
+        } else {
+          loginError.classList.remove("d-none");
+        }
+      });
+
+      // HERO
+      function loadHero() {
+        heroTitleInput.value = localStorage.getItem("heroTitle") || "";
+        heroLeadInput.value = localStorage.getItem("heroLead") || "";
+      }
+
+      heroForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        localStorage.setItem("heroTitle", heroTitleInput.value.trim());
+        localStorage.setItem("heroLead", heroLeadInput.value.trim());
+        heroSaveInfo.classList.remove("d-none");
+        setTimeout(() => heroSaveInfo.classList.add("d-none"), 2000);
+      });
+
+      resetHeroBtn.addEventListener("click", () => {
+        localStorage.removeItem("heroTitle");
+        localStorage.removeItem("heroLead");
+        loadHero();
+        heroSaveInfo.textContent = "Hero dikembalikan ke default.";
+        heroSaveInfo.classList.remove("d-none");
+        setTimeout(() => {
+          heroSaveInfo.classList.add("d-none");
+          heroSaveInfo.textContent = "Perubahan disimpan / direset.";
+        }, 2000);
+      });
+
+      // GALERI
+      function getGallery() {
+        try {
+          return JSON.parse(localStorage.getItem("galleryItems") || "[]");
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveGallery(arr) {
+        localStorage.setItem("galleryItems", JSON.stringify(arr));
+      }
+
+      function renderGalleryList() {
+        const items = getGallery();
+        galleryList.innerHTML = "";
+
+        if (items.length === 0) {
+          galleryList.innerHTML = '<li class="list-group-item">Belum ada item galeri tambahan.</li>';
+          return;
+        }
+
+        items.forEach((item, index) => {
+          const li = document.createElement("li");
+          li.className = "list-group-item d-flex justify-content-between align-items-center";
+          li.innerHTML = `
+            <div>
+              <strong>${item.caption}</strong><br />
+              <small>${item.src}</small>
+            </div>
+            <button class="btn btn-sm btn-danger" data-index="${index}">Hapus</button>
+          `;
+          galleryList.appendChild(li);
+        });
+
+        galleryList.querySelectorAll("button[data-index]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.getAttribute("data-index"));
+            const current = getGallery();
+            current.splice(idx, 1);
+            saveGallery(current);
+            renderGalleryList();
+          });
+        });
+      }
+
+      galleryForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const src = galleryImage.value.trim();
+        const caption = galleryCaption.value.trim();
+        if (!src || !caption) return;
+
+        const items = getGallery();
+        items.push({ src, caption });
+        saveGallery(items);
+
+        galleryImage.value = "";
+        galleryCaption.value = "";
+
+        gallerySaveInfo.classList.remove("d-none");
+        renderGalleryList();
+        setTimeout(() => gallerySaveInfo.classList.add("d-none"), 1500);
+      });
+    });
+  </script>
+</body>
+</html>
